@@ -4,10 +4,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "sripraveen/flask-jenkins-demo"
-        DOCKER_TAG = "${BUILD_NUMBER}"
-        DOCKER_CREDENTIALS = "dockerhub-credentials"
-	DOCKER_PASSWORD = "Godla@1979"
-	DOCKER_USERNAME = "sripraveen"
+        DOCKER_TAG   = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -26,7 +23,6 @@ pipeline {
 
                 bat 'docker --version'
                 bat 'kubectl version --client'
-               
             }
         }
 
@@ -35,9 +31,7 @@ pipeline {
                 echo "Building Docker image..."
 
                 bat """
-                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% 
-                       
-                        .
+                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
                 """
             }
         }
@@ -48,15 +42,15 @@ pipeline {
 
                 withCredentials([
                     usernamePassword(
-                        credentialsId: "${DOCKER_CREDENTIALS}",
-                        usernameVariable: 'sripraveen',
-                        passwordVariable: 'Godla@1979'
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
 
                     bat '''
                         echo %DOCKER_PASSWORD% | docker login ^
-                            -u "${DOCKER_USERNAME}" ^
+                            -u %DOCKER_USERNAME% ^
                             --password-stdin
                     '''
                 }
@@ -69,7 +63,6 @@ pipeline {
 
                 bat """
                     docker push %DOCKER_IMAGE%:%DOCKER_TAG%
-                   
                 """
             }
         }
@@ -116,11 +109,13 @@ pipeline {
                     echo ==============================
                     kubectl get deployments
 
+                    echo.
                     echo ==============================
                     echo PODS
                     echo ==============================
                     kubectl get pods
 
+                    echo.
                     echo ==============================
                     echo SERVICES
                     echo ==============================
@@ -135,8 +130,8 @@ pipeline {
         success {
             echo "======================================"
             echo "Deployment completed successfully!"
-            echo "Application:"
-            echo "http://localhost:30080"
+            echo "Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+            echo "Application: http://localhost:30080"
             echo "======================================"
         }
 
