@@ -24,7 +24,7 @@ pipeline {
 
                 bat 'docker --version'
                 bat 'kubectl version --client'
-                bat 'kubectl get nodes'
+               
             }
         }
 
