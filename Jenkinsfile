@@ -1,9 +1,10 @@
+```groovy
 pipeline {
 
     agent any
 
     environment {
-        DOCKER_IMAGE = "mydockeruser/flask-jenkins-demo"
+        DOCKER_IMAGE = "YOUR_DOCKER_USERNAME/flask-jenkins-demo"
         DOCKER_TAG = "${BUILD_NUMBER}"
         DOCKER_CREDENTIALS = "dockerhub-credentials"
     }
@@ -12,9 +13,20 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
+                echo 'Checking out source code from Git...'
 
                 checkout scm
+            }
+        }
+
+        stage('Verify Environment') {
+            steps {
+                echo 'Checking Windows/Jenkins environment...'
+
+                bat 'docker --version'
+                bat 'kubectl version --client'
+                bat 'kubectl config current-context'
+                bat 'kubectl get nodes'
             }
         }
 
@@ -22,10 +34,10 @@ pipeline {
             steps {
                 echo "Building Docker image..."
 
-                sh """
-                    docker build \
-                        -t ${DOCKER_IMAGE}:${DOCKER_TAG} \
-                        -t ${DOCKER_IMAGE}:latest \
+                bat """
+                    docker build ^
+                        -t %DOCKER_IMAGE%:%DOCKER_TAG% ^
+                        -t %DOCKER_IMAGE%:latest ^
                         .
                 """
             }
@@ -43,9 +55,9 @@ pipeline {
                     )
                 ]) {
 
-                    sh '''
-                        echo "$DOCKER_PASSWORD" | docker login \
-                            -u "$DOCKER_USERNAME" \
+                    bat '''
+                        echo %DOCKER_PASSWORD% | docker login ^
+                            -u %DOCKER_USERNAME% ^
                             --password-stdin
                     '''
                 }
@@ -54,22 +66,22 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                echo "Pushing Docker image..."
+                echo "Pushing Docker image to Docker Hub..."
 
-                sh """
-                    docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    docker push ${DOCKER_IMAGE}:latest
+                bat """
+                    docker push %DOCKER_IMAGE%:%DOCKER_TAG%
+                    docker push %DOCKER_IMAGE%:latest
                 """
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo 'Deploying application to Kubernetes...'
+                echo 'Deploying Kubernetes manifests...'
 
-                sh """
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
+                bat """
+                    kubectl apply -f k8s\\deployment.yaml
+                    kubectl apply -f k8s\\service.yaml
                 """
             }
         }
@@ -78,18 +90,18 @@ pipeline {
             steps {
                 echo 'Updating Kubernetes deployment image...'
 
-                sh """
-                    kubectl set image deployment/flask-app \
-                        flask-app=${DOCKER_IMAGE}:${DOCKER_TAG}
+                bat """
+                    kubectl set image deployment/flask-app ^
+                        flask-app=%DOCKER_IMAGE%:%DOCKER_TAG%
                 """
             }
         }
 
         stage('Wait for Deployment') {
             steps {
-                echo 'Waiting for Kubernetes deployment...'
+                echo 'Waiting for Kubernetes rollout...'
 
-                sh """
+                bat """
                     kubectl rollout status deployment/flask-app --timeout=120s
                 """
             }
@@ -99,11 +111,22 @@ pipeline {
             steps {
                 echo 'Checking Kubernetes resources...'
 
-                sh '''
+                bat """
+                    echo ==============================
+                    echo DEPLOYMENTS
+                    echo ==============================
                     kubectl get deployments
+
+                    echo ==============================
+                    echo PODS
+                    echo ==============================
                     kubectl get pods
+
+                    echo ==============================
+                    echo SERVICES
+                    echo ==============================
                     kubectl get services
-                '''
+                """
             }
         }
     }
@@ -111,16 +134,23 @@ pipeline {
     post {
 
         success {
+            echo "======================================"
             echo "Deployment completed successfully!"
-            echo "Application should be available at http://localhost:30080"
+            echo "Application:"
+            echo "http://localhost:30080"
+            echo "======================================"
         }
 
         failure {
-            echo "Pipeline failed."
+            echo "======================================"
+            echo "Pipeline failed!"
+            echo "Check the Jenkins Console Output."
+            echo "======================================"
         }
 
         always {
-            sh 'docker logout || true'
+            bat 'docker logout || exit /b 0'
         }
     }
 }
+```
