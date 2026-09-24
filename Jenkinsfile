@@ -35,8 +35,7 @@ pipeline {
                 echo "Building Docker image..."
 
                 bat """
-                    docker build ^
-                        -t %DOCKER_IMAGE%:%DOCKER_TAG% ^
+                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% 
                        
                         .
                 """
