@@ -3,9 +3,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "YOUR_DOCKER_USERNAME/flask-jenkins-demo"
+        DOCKER_IMAGE = "sripraveen/flask-jenkins-demo"
         DOCKER_TAG = "${BUILD_NUMBER}"
         DOCKER_CREDENTIALS = "dockerhub-credentials"
+	DOCKER_PASSWORD = "Godla@1979"
+	DOCKER_USERNAME = "sripraveen"
     }
 
     stages {
@@ -48,8 +50,8 @@ pipeline {
                 withCredentials([
                     usernamePassword(
                         credentialsId: "${DOCKER_CREDENTIALS}",
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
+                        usernameVariable: 'sripraveen',
+                        passwordVariable: 'Godla@1979'
                     )
                 ]) {
 
