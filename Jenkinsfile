@@ -37,7 +37,7 @@ pipeline {
                 bat """
                     docker build ^
                         -t %DOCKER_IMAGE%:%DOCKER_TAG% ^
-                        -t %DOCKER_IMAGE%:latest ^
+                       
                         .
                 """
             }
@@ -57,7 +57,7 @@ pipeline {
 
                     bat '''
                         echo %DOCKER_PASSWORD% | docker login ^
-                            -u %DOCKER_USERNAME% ^
+                            -u "${DOCKER_USERNAME}" ^
                             --password-stdin
                     '''
                 }
@@ -70,7 +70,7 @@ pipeline {
 
                 bat """
                     docker push %DOCKER_IMAGE%:%DOCKER_TAG%
-                    docker push %DOCKER_IMAGE%:latest
+                   
                 """
             }
         }
