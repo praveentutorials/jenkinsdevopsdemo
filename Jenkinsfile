@@ -23,55 +23,25 @@ pipeline {
 
                 bat 'docker --version'
                 bat 'kubectl version --client'
+                bat 'kubectl config current-context'
+                bat 'kubectl get nodes'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image..."
+                echo 'Building Docker image...'
 
                 bat """
-                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
-                """
-            }
-        }
-
-<<<<<<< HEAD
-               stage('Deploy to Kubernetes') {
-=======
-        stage('Docker Login') {
-            steps {
-                echo 'Logging in to Docker Hub...'
-
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub',
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )
-                ]) {
-
-                    bat '''
-                        echo %DOCKER_PASSWORD% | docker login ^
-                            -u %DOCKER_USERNAME% ^
-                            --password-stdin
-                    '''
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                echo "Pushing Docker image to Docker Hub..."
-
-                bat """
-                    docker push %DOCKER_IMAGE%:%DOCKER_TAG%
+                    docker build ^
+                        -t %DOCKER_IMAGE%:%DOCKER_TAG% ^
+                        -t %DOCKER_IMAGE%:latest ^
+                        .
                 """
             }
         }
 
         stage('Deploy to Kubernetes') {
->>>>>>> bf3e21a62777b7f81bdfead1e01f63b5c6b0d796
             steps {
                 echo 'Deploying Kubernetes manifests...'
 
@@ -132,22 +102,18 @@ pipeline {
     post {
 
         success {
-            echo "======================================"
-            echo "Deployment completed successfully!"
+            echo '======================================'
+            echo 'Deployment completed successfully!'
             echo "Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
-            echo "Application: http://localhost:30080"
-            echo "======================================"
+            echo 'Application: http://localhost:30080'
+            echo '======================================'
         }
 
         failure {
-            echo "======================================"
-            echo "Pipeline failed!"
-            echo "Check the Jenkins Console Output."
-            echo "======================================"
-        }
-
-        always {
-            bat 'docker logout || exit /b 0'
+            echo '======================================'
+            echo 'Pipeline failed!'
+            echo 'Check the Jenkins Console Output.'
+            echo '======================================'
         }
     }
 }
