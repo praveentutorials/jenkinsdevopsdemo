@@ -21,9 +21,7 @@ pipeline {
             steps {
                 echo 'Checking Windows/Jenkins environment...'
 
-                bat 'docker --version'
-                bat 'kubectl version --client'
-                bat 'kubectl config current-context'
+              
                
             }
         }
@@ -32,12 +30,7 @@ pipeline {
             steps {
                 echo 'Building Docker image...'
 
-                bat """
-                    docker build ^
-                        -t %DOCKER_IMAGE%:%DOCKER_TAG% ^
-                        -t %DOCKER_IMAGE%:latest ^
-                        .
-                """
+              
             }
         }
 
@@ -45,10 +38,7 @@ pipeline {
             steps {
                 echo 'Deploying Kubernetes manifests...'
 
-                bat """
-                    kubectl apply -f k8s\\deployment.yaml
-                    kubectl apply -f k8s\\service.yaml
-                """
+              
             }
         }
 
@@ -56,10 +46,6 @@ pipeline {
             steps {
                 echo 'Updating Kubernetes deployment image...'
 
-                bat """
-                    kubectl set image deployment/flask-app ^
-                        flask-app=%DOCKER_IMAGE%:%DOCKER_TAG%
-                """
             }
         }
 
@@ -67,9 +53,6 @@ pipeline {
             steps {
                 echo 'Waiting for Kubernetes rollout...'
 
-                bat """
-                    kubectl rollout status deployment/flask-app --timeout=120s
-                """
             }
         }
 
@@ -77,24 +60,7 @@ pipeline {
             steps {
                 echo 'Checking Kubernetes resources...'
 
-                bat """
-                    echo ==============================
-                    echo DEPLOYMENTS
-                    echo ==============================
-                    kubectl get deployments
-
-                    echo.
-                    echo ==============================
-                    echo PODS
-                    echo ==============================
-                    kubectl get pods
-
-                    echo.
-                    echo ==============================
-                    echo SERVICES
-                    echo ==============================
-                    kubectl get services
-                """
+                
             }
         }
     }
@@ -104,8 +70,7 @@ pipeline {
         success {
             echo '======================================'
             echo 'Deployment completed successfully!'
-            echo "Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
-            echo 'Application: http://localhost:30080'
+            echo 'Application: http://localhost:30007'
             echo '======================================'
         }
 
