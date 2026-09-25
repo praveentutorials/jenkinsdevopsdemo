@@ -36,7 +36,42 @@ pipeline {
             }
         }
 
+<<<<<<< HEAD
                stage('Deploy to Kubernetes') {
+=======
+        stage('Docker Login') {
+            steps {
+                echo 'Logging in to Docker Hub...'
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+
+                    bat '''
+                        echo %DOCKER_PASSWORD% | docker login ^
+                            -u %DOCKER_USERNAME% ^
+                            --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "Pushing Docker image to Docker Hub..."
+
+                bat """
+                    docker push %DOCKER_IMAGE%:%DOCKER_TAG%
+                """
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+>>>>>>> bf3e21a62777b7f81bdfead1e01f63b5c6b0d796
             steps {
                 echo 'Deploying Kubernetes manifests...'
 
