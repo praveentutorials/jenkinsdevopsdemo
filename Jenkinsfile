@@ -23,6 +23,7 @@ pipeline {
 
                 bat 'docker --version'
                 bat 'kubectl version --client'
+                bat 'kubectl config current-context'
                
             }
         }
